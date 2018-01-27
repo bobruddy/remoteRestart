@@ -59,8 +59,8 @@ def create_jwt(project_id, private_key_file, algorithm):
     with open(private_key_file, 'r') as f:
         private_key = f.read()
 
-    print('Creating JWT using {} from private key file {}'.format(
-            algorithm, private_key_file))
+    #print('Creating JWT using {} from private key file {}'.format(
+            #algorithm, private_key_file))
 
     return jwt.encode(token, private_key, algorithm=algorithm)
 # [END iot_mqtt_jwt]
@@ -99,6 +99,12 @@ def get_client(
         algorithm, ca_certs, mqtt_bridge_hostname, mqtt_bridge_port):
     """Create our MQTT client. The client_id is a unique string that identifies
     this device. For Google Cloud IoT Core, it must be in the format below."""
+    print('projects/{}/locations/{}/registries/{}/devices/{}'
+        .format(
+            project_id,
+            cloud_region,
+            registry_id,
+            device_id))
     client = mqtt.Client(
             client_id=('projects/{}/locations/{}/registries/{}/devices/{}'
                        .format(
@@ -113,6 +119,10 @@ def get_client(
             username='unused',
             password=create_jwt(
                     project_id, private_key_file, algorithm))
+    print ('.')
+    print( create_jwt(
+                    project_id, private_key_file, algorithm))
+    print ('.')
 
     # Enable SSL/TLS support.
     client.tls_set(ca_certs=ca_certs)
@@ -204,7 +214,9 @@ def main():
     # Publish to the events or state topic based on the flag.
     sub_topic = 'events' if args.message_type == 'event' else 'state'
 
-    mqtt_topic = '/devices/{}/{}'.format(args.device_id, sub_topic)
+    mqtt_topic = '/devices/a123456789/events'
+    #mqtt_topic = '/devices/{}/{}'.format(args.device_id, sub_topic)
+    #mqtt_topic = 'projects/remote-reset/topics/deviceStatus'
 
     jwt_iat = datetime.datetime.utcnow()
     jwt_exp_mins = args.jwt_expires_minutes
@@ -218,7 +230,7 @@ def main():
         payload = '{}/{}-payload-{}'.format(
                 args.registry_id, args.device_id, i)
         print('Publishing message {}/{}: \'{}\''.format(
-                i, args.num_messages, payload))
+                i, args.num_messages, payload, mqtt_topic))
         # [START iot_mqtt_jwt_refresh]
         seconds_since_issue = (datetime.datetime.utcnow() - jwt_iat).seconds
         if seconds_since_issue > 60 * jwt_exp_mins:
@@ -238,6 +250,7 @@ def main():
 
         # Send events every second. State should not be updated as often
         time.sleep(1 if args.message_type == 'event' else 5)
+        print('here')
 
     # End the network loop and finish.
     client.loop_stop()
