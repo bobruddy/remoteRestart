@@ -1,0 +1,8 @@
+<h2>Switch List</h2>
+<button ng-click="addSwitch()">Add another switch</button>
+<div ng-repeat="switch in switches | orderBy:'Name' | orderBy:'mac'">
+  <button ng-click="delete(switch)">delete</button>
+  <button ng-click="update(switch)">update</button>
+  <button ng-click="restart(switch)">restart</button>
+  {{ $index + 1 }}. <b>{{ switch.name }} {{ switch.mac }}</b>
+</div>
